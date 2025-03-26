@@ -1,7 +1,16 @@
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { CaretRight, Gear, MagnifyingGlass } from 'phosphor-react-native';
+import { Link } from "expo-router";
+import { useEffect } from "react";
+import { fetchPokemon } from "./services/api";
 
 export default function Index() {
+  useEffect(() => {
+    const loadPokemons = async () => {
+      const data = await fetchPokemon();
+      console.log(data);
+    }
+  })
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -20,14 +29,27 @@ export default function Index() {
       </View>
 
       <View style={styles.content}>
-        <Text>Todos os pokemons</Text>
+        <Text style={styles.contentText}>Todos os pokemons</Text>
 
         <View style={styles.card}>
           <View style={styles.cardInfo}>
-            <Image source={require("../app/assets/bulbasaur.png")} />
-            <View></View>
+            <Image 
+            source={require("../app/assets/bulbasaur.png")
+            }
+            resizeMode="contain"
+            style={{ width: 80, height: 80 }}  
+            />
+            <View>
+              <Text>#001</Text>
+              <Text>Bulbasaur</Text>
+            </View>
           </View>
-          <CaretRight size={32} color="#fff"  />
+          <Link href={{
+            pathname: "/pokemon/[id]",
+            params: { id: "name" },
+          }}>
+            <CaretRight size={32} />
+          </Link>
         </View>
       </View>
 
@@ -39,6 +61,7 @@ export default function Index() {
     </View>
   );
 }
+
 
 
 export const styles = StyleSheet.create({
@@ -110,5 +133,13 @@ export const styles = StyleSheet.create({
   },
   cardInfo: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  contentText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    paddingBottom: 20,
   },
 });
