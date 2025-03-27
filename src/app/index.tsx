@@ -1,14 +1,27 @@
-import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { CaretRight, Gear, MagnifyingGlass } from 'phosphor-react-native';
 import { Link } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchPokemon } from "./services/api";
+import { PokemonListItem } from "./types/pokemon";
 
 export default function Index() {
+  const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
   useEffect(() => {
     const loadPokemons = async () => {
       const data = await fetchPokemon();
-      console.log(data);
+      const fetchPokemonsData: PokemonListItem[] = await Promise.all(
+        data.map(async (item: {name: string; url: string}) => {
+          const response = await fetch(item.url);
+          const details = await response.json();
+
+          return {
+            name: item.name,
+            Image: details.sprites.front_default,
+          };
+        })
+      );
+      setPokemons(fetchPokemonsData);    
     }
   })
   return (
@@ -31,26 +44,33 @@ export default function Index() {
       <View style={styles.content}>
         <Text style={styles.contentText}>Todos os pokemons</Text>
 
-        <View style={styles.card}>
-          <View style={styles.cardInfo}>
-            <Image 
-            source={require("../app/assets/bulbasaur.png")
-            }
-            resizeMode="contain"
-            style={{ width: 80, height: 80 }}  
-            />
-            <View>
-              <Text>#001</Text>
-              <Text>Bulbasaur</Text>
-            </View>
-          </View>
-          <Link href={{
-            pathname: "/pokemon/[id]",
-            params: { id: "name" },
-          }}>
+        <FlatList
+          data={pokemons}
+          keyExtractor={(item) => item.name}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.cardInfo}>
+                <Image source={{uri: item.image}}/>
+                <View>
+                  <Text>#001</Text>
+                  <Text>{item.name}</Text>
+                </View>
+              </View>
+
+              <Link 
+                href={{
+                pathname: "/pokemon/[id]",
+                params: {
+                  id: 2,
+                },
+              }}>
             <CaretRight size={32} />
           </Link>
         </View>
+          
+        )}
+        />
+        
       </View>
 
       <View style={styles.footer}>
