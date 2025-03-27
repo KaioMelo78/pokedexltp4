@@ -1,24 +1,40 @@
-import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { CaretRight, Gear, MagnifyingGlass } from 'phosphor-react-native';
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { fetchPokemon } from "./services/api";
 import { PokemonListItem } from "./types/pokemon";
+import Modal from "react-native-modal"; 
+import Pokemon from "./pokemon/[id]";
+
+const {height} = Dimensions.get('window');
 
 export default function Index() {
   const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedPokemon, setSelectedPokemon] = useState<string | null>(null)
+
+
+  const toggleModal = (pokemonName?: string) => {
+    if (pokemonName) {
+      setSelectedPokemon(pokemonName);
+    }
+    setModalVisible(!isModalVisible);
+  };
+
   useEffect(() => {
     const loadPokemons = async () => {
       const data = await fetchPokemon();
-      const fetchPokemonsData: PokemonListItem[] = await Promise.all(
-        data.map(async (item: {name: string; url: string}) => {
-          const response = await fetch(item.url);
-          const details = await response.json();
+        console.log(fetchPokemon);
+          const fetchPokemonsData: PokemonListItem[] = await Promise.all(
+            data.map(async (item: {name: string; url: string}) => {
+              const response = await fetch(item.url);
+              const details = await response.json();
 
-          return {
-            name: item.name,
-            Image: details.sprites.front_default,
-          };
+              return {
+                name: item.name,
+                image: details.sprites.front_default,
+            };
         })
       );
       setPokemons(fetchPokemonsData);    
@@ -28,6 +44,7 @@ export default function Index() {
   }, []);
 
   console.log(pokemons);
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -51,26 +68,20 @@ export default function Index() {
         <FlatList
           data={pokemons}
           keyExtractor={(item) => item.name}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
+          renderItem={({ item, index }) => (
+            <Pressable onPress={() => toggleModal(item.name)} style={styles.card}>
               <View style={styles.cardInfo}>
-                <Image source={{uri: item.image}}/>
+                <Image width={60} height={60} source={{uri: item.image}}/>
                 <View>
-                  <Text>#001</Text>
+                  <Text>#{index + 1}</Text>
                   <Text>{item.name}</Text>
                 </View>
               </View>
 
-              <Link 
-                href={{
-                pathname: "/pokemon/[id]",
-                params: {
-                  id: 2,
-                },
-              }}>
+
             <CaretRight size={32} />
-          </Link>
-        </View>
+
+        </Pressable>
           
         )}
         />
@@ -82,6 +93,19 @@ export default function Index() {
           <Text style={styles.buttonText}>Conhecer um pokemon</Text>
         </Pressable>
       </View> 
+
+      <Modal
+        isVisible = {isModalVisible}
+        onBackdropPress = {() => toggleModal()}
+        swipeDirection = {"down"}
+        onSwipeComplete={() => toggleModal()}
+        style={styles.modal}
+      >
+        <View style={styles.modalContent}>
+          <Pokemon name={selectedPokemon}/>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -151,9 +175,11 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     padding: 15,
-    elevation: 5,
     justifyContent: "space-between",
-    borderRadius: 25,
+    borderRadius: 4,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#f2f2f2",
   },
   cardInfo: {
     flex: 1,
@@ -165,5 +191,16 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     paddingBottom: 20,
+  },
+  modal: {
+    justifyContent: "flex-end",
+    margin: 0,
+  },
+  modalContent: {
+    height: height * 0.8,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
   },
 });
