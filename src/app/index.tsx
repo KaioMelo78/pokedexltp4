@@ -22,8 +22,12 @@ export default function Index() {
         })
       );
       setPokemons(fetchPokemonsData);    
+
     }
-  })
+    loadPokemons();
+  }, []);
+
+  console.log(pokemons);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
