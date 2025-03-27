@@ -5,12 +5,12 @@ export const api = axios.create({
 });
 
 
-export const fetchPokemon = async (limit: number = 20, offset: number = 0) => {
+export const fetchPokemon = async (limit: number = 51, offset: number = 0) => {
     try {
-        const response = await api.get(`/pokmeon?limit=${limit}&offset=${offset}`);
-        return response.data;
+        const response = await api.get(`/pokemon?limit=${limit}&offset=${offset}`);
+        return response.data.results;
     } catch (error) {
         console.error(error);
-        return [];
+        return "ah";
     }
 }
